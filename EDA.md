@@ -1,0 +1,778 @@
+Below are **clean, structured notes** from the transcript.
+They are organized so that **someone can follow the project step-by-step and understand why each step exists**.
+
+---
+
+# End-to-End Machine Learning Project (Modular Coding)
+
+## Tutorial 3 — Project Setup, EDA, and Initial Model Training
+
+This stage focuses on:
+
+1. Fixing **logging and exception handling**
+2. Understanding the **project problem statement**
+3. Performing **EDA (Exploratory Data Analysis)**
+4. Training an **initial baseline model**
+5. Preparing code to later convert into **modular architecture**
+
+---
+
+# 1. Fixing Logging Issue
+
+## Problem
+
+Exception messages were **not getting stored in the log files**.
+
+### Cause
+
+The **logging module was not imported** from the project logger file.
+
+---
+
+## Fix
+
+Import the logger inside the exception file.
+
+```python
+from src.logger import logging
+```
+
+Now when an exception occurs, it will be written into the **logs folder**.
+
+---
+
+## Example Exception Test
+
+```python
+try:
+    a = 1 / 0
+except Exception as e:
+    logging.info("Error occurred")
+```
+
+---
+
+## Result
+
+When you run:
+
+```bash
+python exception.py
+```
+
+A **log file will be created** inside the logs folder containing the error message.
+
+---
+
+# 2. Selecting the Project Dataset
+
+For the first ML project, a **simple but realistic dataset** is chosen.
+
+## Dataset
+
+**Student Performance Indicator**
+
+### Why this dataset?
+
+It contains:
+
+* Numerical features
+* Categorical features
+* Multiple variables affecting performance
+* Realistic ML pipeline practice
+
+This helps learn:
+
+* Feature engineering
+* Data preprocessing
+* Model training
+* Modular ML pipeline design
+
+---
+
+# 3. Problem Statement
+
+Goal:
+
+Predict **student test scores** based on various attributes.
+
+---
+
+## Features in Dataset
+
+| Feature                     | Type        | Description            |
+| --------------------------- | ----------- | ---------------------- |
+| gender                      | categorical | student's gender       |
+| race_ethnicity              | categorical | ethnicity group        |
+| parental_level_of_education | categorical | parents education      |
+| lunch                       | categorical | standard or free lunch |
+| test_preparation_course     | categorical | completed or not       |
+| math_score                  | numerical   | math marks             |
+| reading_score               | numerical   | reading marks          |
+| writing_score               | numerical   | writing marks          |
+
+---
+
+## Target
+
+Possible targets:
+
+1️⃣ Predict **math_score**
+2️⃣ Predict **total_score**
+3️⃣ Predict **average_score**
+
+---
+
+## Dataset Size
+
+```
+Rows: 1000
+Columns: 8
+```
+
+---
+
+# 4. Project Workflow (ML Lifecycle)
+
+Typical Machine Learning project flow:
+
+```
+1. Problem Understanding
+2. Data Collection
+3. Data Checks
+4. Exploratory Data Analysis
+5. Feature Engineering
+6. Model Training
+7. Model Evaluation
+8. Model Selection
+9. Model Deployment
+```
+
+---
+
+# 5. Project Folder Structure (Initial)
+
+```
+project/
+│
+├── notebooks/
+│   ├── data/
+│   │   └── student.csv
+│   │
+│   ├── EDA.ipynb
+│   └── Model_Training.ipynb
+│
+├── src/
+│
+├── requirements.txt
+```
+
+---
+
+# 6. Environment Setup
+
+## Select Python Kernel
+
+Create a virtual environment.
+
+Example:
+
+```bash
+python -m venv venv
+```
+
+Activate it.
+
+```bash
+source venv/bin/activate
+```
+
+---
+
+## Install Jupyter Kernel
+
+```bash
+pip install ipykernel
+```
+
+---
+
+## Add Libraries in `requirements.txt`
+
+Example:
+
+```
+pandas
+numpy
+seaborn
+matplotlib
+scikit-learn
+```
+
+Install all dependencies: Note while writing the below code ensure that -e. is commented while installing and later you can make it as it was before
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+# 7. Exploratory Data Analysis (EDA)
+
+EDA is best done inside **Jupyter Notebook**.
+
+Reason:
+
+* Easy visualization
+* Step-by-step analysis
+* Clear documentation
+* Stakeholder communication
+
+---
+
+# 8. Load Dataset
+
+```python
+import pandas as pd
+
+df = pd.read_csv("data/student.csv")
+df.head()
+```
+
+---
+
+# 9. Basic Dataset Information
+
+Check dataset shape.
+
+```python
+df.shape
+```
+
+Check column info.
+
+```python
+df.info()
+```
+
+---
+
+# 10. Data Checks
+
+## Check Missing Values
+
+```python
+df.isnull().sum()
+```
+
+Observation:
+
+```
+No missing values
+```
+
+If missing values exist → perform **imputation**
+
+Example:
+
+```
+Mean imputation
+Median imputation
+Mode imputation
+```
+
+---
+
+## Check Duplicate Rows
+
+```python
+df.duplicated().sum()
+```
+
+If duplicates exist:
+
+```python
+df = df.drop_duplicates()
+```
+
+---
+
+# 11. Check Unique Values
+
+```python
+df.nunique()
+```
+
+Example output:
+
+| Feature                     | Unique Values |
+| --------------------------- | ------------- |
+| gender                      | 2             |
+| race_ethnicity              | 5             |
+| parental_level_of_education | 6             |
+| lunch                       | 2             |
+| test_preparation_course     | 2             |
+
+---
+
+# 12. Descriptive Statistics
+
+```python
+df.describe()
+```
+
+Important insights:
+
+* Mean values
+* Standard deviation
+* Min / max values
+
+Observation example:
+
+Means of score columns are close → balanced distribution.
+
+---
+
+# 13. Identify Feature Types
+
+Separate numerical and categorical features.
+
+### Numerical Features
+
+```python
+numerical_features = [
+    feature for feature in df.columns
+    if df[feature].dtype != "O"
+]
+```
+
+---
+
+### Categorical Features
+
+```python
+categorical_features = [
+    feature for feature in df.columns
+    if df[feature].dtype == "O"
+]
+```
+
+---
+
+# 14. Result
+
+### Numerical Features
+
+```
+math_score
+reading_score
+writing_score
+```
+
+---
+
+### Categorical Features
+
+```
+gender
+race_ethnicity
+parental_level_of_education
+lunch
+test_preparation_course
+```
+
+---
+
+# 15. Feature Engineering
+
+Create **new features**.
+
+---
+
+## Total Score
+
+```python
+df["total_score"] = (
+    df["math_score"]
+    + df["reading_score"]
+    + df["writing_score"]
+)
+```
+
+---
+
+## Average Score
+
+```python
+df["average_score"] = df["total_score"] / 3
+```
+
+---
+
+## Why Create These Features?
+
+They allow:
+
+* Better understanding of student performance
+* New prediction targets
+* Improved model learning
+
+---
+
+# 16. Visualization
+
+Example using **Seaborn**.
+
+---
+
+## Score Distribution
+
+```python
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+sns.histplot(df["average_score"])
+```
+
+---
+
+## Compare Gender vs Performance
+
+```python
+sns.histplot(data=df, x="average_score", hue="gender")
+```
+
+Observation:
+
+Female students tend to score slightly higher on average.
+
+---
+
+# 17. Model Training Notebook
+
+Now we move to **Model_Training.ipynb**
+
+Goal:
+
+Train multiple ML models and select the best one.
+
+---
+
+# 18. Installing ML Libraries
+
+Add to requirements:
+
+```
+scikit-learn
+xgboost
+catboost
+```
+
+Install:
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+# 19. Read Dataset
+
+```python
+df = pd.read_csv("student.csv")
+```
+
+---
+
+# 20. Define Features
+
+## Independent Features (X)
+
+```python
+X = df.drop(columns=["math_score"], axis=1)
+```
+
+---
+
+## Target Variable (y)
+
+```python
+y = df["math_score"]
+```
+
+---
+
+# 21. Handle Categorical & Numerical Data
+
+Separate them.
+
+```python
+num_features = X.select_dtypes(exclude="object").columns
+cat_features = X.select_dtypes(include="object").columns
+```
+
+---
+
+# 22. Import Preprocessing Tools
+
+```python
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.compose import ColumnTransformer
+```
+
+---
+
+# 23. Initialize Transformers
+
+```python
+scaler = StandardScaler()
+encoder = OneHotEncoder()
+```
+
+---
+
+# 24. Create Column Transformer
+
+Purpose:
+
+Apply **different preprocessing to different feature types**.
+
+---
+
+```python
+preprocessor = ColumnTransformer(
+    [
+        ("OneHotEncoder", encoder, cat_features),
+        ("StandardScaler", scaler, num_features)
+    ]
+)
+```
+
+---
+
+# 25. Transform Data
+
+```python
+X = preprocessor.fit_transform(X)
+```
+
+Result:
+
+```
+1000 rows
+19 columns
+```
+
+Categorical features expanded via **One-Hot Encoding**.
+
+---
+
+# 26. Train-Test Split
+
+```python
+from sklearn.model_selection import train_test_split
+```
+
+---
+
+```python
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    random_state=42
+)
+```
+
+Result:
+
+```
+Training data = 800 rows
+Testing data = 200 rows
+```
+
+---
+
+# 27. Evaluation Metrics
+
+Used metrics:
+
+```
+MAE  → Mean Absolute Error
+MSE  → Mean Squared Error
+RMSE → Root Mean Squared Error
+R²   → R-squared
+```
+
+---
+
+Example evaluation function:
+
+```python
+from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
+import numpy as np
+
+def evaluate_model(true, predicted):
+    mae = mean_absolute_error(true, predicted)
+    mse = mean_squared_error(true, predicted)
+    rmse = np.sqrt(mse)
+    r2 = r2_score(true, predicted)
+
+    return mae, rmse, r2
+```
+
+---
+
+# 28. Train Multiple Models
+
+Example models:
+
+```
+Linear Regression
+Ridge Regression
+Random Forest
+Decision Tree
+KNN
+AdaBoost
+SVR
+CatBoost
+XGBoost
+```
+
+Train and evaluate them.
+
+---
+
+# 29. Model Comparison
+
+Compare using **R² Score**.
+
+Example result:
+
+| Model             | R² Score |
+| ----------------- | -------- |
+| Linear Regression | 0.88     |
+| Ridge Regression  | 0.88     |
+| CatBoost          | 0.85     |
+
+Best model:
+
+```
+Linear Regression
+```
+
+---
+
+# 30. Make Predictions
+
+```python
+predictions = model.predict(X_test)
+```
+
+---
+
+Compare predicted vs actual.
+
+```
+Actual | Predicted | Difference
+```
+
+---
+
+# 31. Why This Notebook Exists
+
+Everything here is **experimental code**.
+
+Later it will be converted into **production-ready modular code**.
+
+---
+
+# 32. Mapping Notebook Code to Modular Project
+
+In the next stage, this code will be distributed across modules.
+
+---
+
+### utils.py
+
+Reusable functions
+
+```
+evaluate_model()
+train_test_split()
+metrics
+```
+
+---
+
+### data_ingestion.py
+
+Responsible for:
+
+```
+reading dataset
+splitting train/test
+saving datasets
+```
+
+---
+
+### model_trainer.py
+
+Responsible for:
+
+```
+model training
+model selection
+model saving
+```
+
+---
+
+# 33. Git Commit
+
+Save project progress.
+
+---
+
+### Add files
+
+```bash
+git add .
+```
+
+---
+
+### Commit
+
+```bash
+git commit -m "EDA and problem statement"
+```
+
+---
+
+### Push to GitHub
+
+```bash
+git push -u origin main
+```
+
+---
+
+# Key Learning From This Tutorial
+
+You learned:
+
+* Logging fixes
+* Dataset analysis
+* Feature engineering
+* EDA workflow
+* Column Transformer
+* Model training
+* Model evaluation
+* Preparing for modular ML architecture
+
+---
+
+
+It will make this tutorial **10× clearer and interview-ready**.
