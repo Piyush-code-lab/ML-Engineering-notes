@@ -1,8 +1,4 @@
-# Data Ingestion Component in an End-to-End ML Project
-
-> **Data Ingestion Component**
-
----
+# 1. Data Ingestion Component in an End-to-End ML Project
 
 # 2. What is Data Ingestion?
 
