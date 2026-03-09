@@ -1,0 +1,825 @@
+# Data Ingestion Component in an End-to-End ML Project
+
+> **Data Ingestion Component**
+
+---
+
+# 2. What is Data Ingestion?
+
+## Definition
+
+**Data Ingestion** is the process of **collecting and loading data from a data source into the ML pipeline.**
+
+### Possible Data Sources
+
+In real companies, data may come from:
+
+* Databases (MySQL, PostgreSQL)
+* NoSQL databases (MongoDB)
+* Data lakes (Hadoop)
+* APIs
+* Streaming platforms
+* Cloud storage
+* Local files
+* UI uploads
+
+In this tutorial:
+
+* We **start with a local CSV file**
+* Later we will extend it to **MongoDB**
+
+---
+
+## Why Data Ingestion is Important
+
+In a real production team:
+
+* A **Big Data Team** collects data from multiple sources.
+* They store it in systems like:
+
+  * Hadoop
+  * MongoDB
+  * Data warehouses
+  * Cloud storage
+
+Then the **Data Scientist** must:
+
+1. Read the data
+2. Prepare the dataset
+3. Split it into **train/test**
+4. Send it to **data transformation pipeline**
+
+So data ingestion is the **first step of the ML pipeline**.
+
+---
+
+# 3. File Created for Data Ingestion
+
+Inside the project structure we created:
+
+```
+src/
+ └── components/
+      └── data_ingestion.py
+```
+
+This file will:
+
+1. Read the dataset
+2. Store a raw copy
+3. Split the dataset
+4. Save train/test datasets
+5. Pass their paths to the next stage
+
+---
+
+# 4. Required Imports
+
+First we import all necessary libraries.
+
+```python
+import os
+import sys
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from dataclasses import dataclass
+
+from src.exception import CustomException
+from src.logger import logging
+```
+
+---
+
+## Why Each Import is Needed
+
+### `os`
+
+Used for:
+
+* Creating folders
+* Managing file paths
+
+### `sys`
+
+Used with **custom exception handling**
+
+### `pandas`
+
+Used to work with **DataFrames**
+
+### `train_test_split`
+
+Used to **split the dataset into training and testing**
+
+### `dataclass`
+
+Used to **create configuration classes easily**
+
+### `CustomException`
+
+Handles errors in a **structured project-specific way**
+
+### `logging`
+
+Used to **track the execution of the pipeline**
+
+Logs help detect **where errors occur in production systems**.
+
+---
+
+# 5. Creating Data Ingestion Configuration Class
+
+We create a class that stores **input parameters** for the data ingestion component.
+
+```python
+@dataclass
+class DataIngestionConfig:
+```
+
+This class stores the **paths where output files will be saved**.
+
+---
+
+## Why Use a Config Class?
+
+In large ML systems:
+
+Components should **not hardcode paths**.
+
+Instead we pass **configuration parameters**.
+
+Benefits:
+
+* Clean architecture
+* Easy modifications
+* Scalable pipelines
+
+---
+
+## Defining File Paths
+
+### Train Dataset Path
+
+```python
+train_data_path: str = os.path.join("artifacts", "train.csv")
+```
+
+This means:
+
+Train data will be saved at:
+
+```
+artifacts/train.csv
+```
+
+---
+
+### Test Dataset Path
+
+```python
+test_data_path: str = os.path.join("artifacts", "test.csv")
+```
+
+This means:
+
+```
+artifacts/test.csv
+```
+
+---
+
+### Raw Dataset Path
+
+```python
+raw_data_path: str = os.path.join("artifacts", "data.csv")
+```
+
+This stores the **original dataset before splitting**.
+
+---
+
+## Why Save Raw Data?
+
+Raw data is saved for:
+
+* debugging
+* reproducibility
+* data auditing
+* retraining models
+
+---
+
+# 6. Creating the Data Ingestion Class
+
+Now we create the **main component class**.
+
+```python
+class DataIngestion:
+```
+
+---
+
+# 7. Constructor (`__init__`)
+
+```python
+def __init__(self):
+    self.ingestion_config = DataIngestionConfig()
+```
+
+### What Happens Here?
+
+When the class is created:
+
+1. `DataIngestionConfig()` is initialized
+2. All paths are stored in:
+
+```
+self.ingestion_config
+```
+
+Which now contains:
+
+```
+train_data_path
+test_data_path
+raw_data_path
+```
+
+These paths will be used later to **store files**.
+
+---
+
+# 8. Creating the Main Data Ingestion Function
+
+We define the main function:
+
+```python
+def initiate_data_ingestion(self):
+```
+
+This function performs the **complete data ingestion process**.
+
+---
+
+# 9. Logging Start of Data Ingestion
+
+```python
+logging.info("Entered the data ingestion method")
+```
+
+Why logging?
+
+In production:
+
+* pipelines run automatically
+* we cannot monitor manually
+
+Logs help **trace execution**.
+
+---
+
+# 10. Error Handling Using Try-Except
+
+```python
+try:
+```
+
+All ingestion steps go inside the try block.
+
+If something fails:
+
+```
+except Exception as e:
+    raise CustomException(e, sys)
+```
+
+This raises a **custom project error**.
+
+---
+
+# 11. Reading the Dataset
+
+```python
+df = pd.read_csv("notebook/data/stud.csv")
+```
+
+This loads the dataset into a **Pandas DataFrame**.
+
+Dataset location example:
+
+```
+notebook/data/stud.csv
+```
+
+---
+
+## Why Start With CSV?
+
+Many beginners don't know:
+
+* MongoDB
+* databases
+* APIs
+
+So we begin with a **simple CSV file**.
+
+Later this can be replaced with:
+
+```
+API
+MongoDB
+SQL database
+Streaming data
+```
+
+---
+
+# 12. Logging Dataset Read
+
+```python
+logging.info("Read the dataset as dataframe")
+```
+
+This confirms the dataset has been successfully loaded.
+
+---
+
+# 13. Creating the Artifacts Folder
+
+Next step:
+
+Create the directory where files will be stored.
+
+```python
+os.makedirs(
+    os.path.dirname(self.ingestion_config.train_data_path),
+    exist_ok=True
+)
+```
+
+---
+
+## What This Does
+
+1. Extracts folder path from:
+
+```
+artifacts/train.csv
+```
+
+2. Creates the folder:
+
+```
+artifacts/
+```
+
+3. `exist_ok=True` means:
+
+* If folder already exists → do nothing.
+
+---
+
+# 14. Saving Raw Dataset
+
+```python
+df.to_csv(
+    self.ingestion_config.raw_data_path,
+    index=False,
+    header=True
+)
+```
+
+This saves the original dataset to:
+
+```
+artifacts/data.csv
+```
+
+---
+
+# 15. Logging Train-Test Split
+
+```python
+logging.info("Train Test Split Initiated")
+```
+
+This indicates the next stage begins.
+
+---
+
+# 16. Splitting Dataset
+
+```python
+train_set, test_set = train_test_split(
+    df,
+    test_size=0.2,
+    random_state=42
+)
+```
+
+---
+
+## What This Does
+
+Splits dataset into:
+
+* **80% Training data**
+* **20% Testing data**
+
+### Why `random_state=42`?
+
+To ensure **reproducibility**.
+
+Meaning:
+
+Every run produces **the same split**.
+
+---
+
+# 17. Saving Training Dataset
+
+```python
+train_set.to_csv(
+    self.ingestion_config.train_data_path,
+    index=False,
+    header=True
+)
+```
+
+This saves:
+
+```
+artifacts/train.csv
+```
+
+---
+
+# 18. Saving Testing Dataset
+
+```python
+test_set.to_csv(
+    self.ingestion_config.test_data_path,
+    index=False,
+    header=True
+)
+```
+
+This saves:
+
+```
+artifacts/test.csv
+```
+
+---
+
+# 19. Logging Completion
+
+```python
+logging.info("Data Ingestion Completed")
+```
+
+Now the ingestion pipeline is finished.
+
+---
+
+# 20. Returning Output Paths
+
+Finally we return paths for the **next pipeline step**.
+
+```python
+return (
+    self.ingestion_config.train_data_path,
+    self.ingestion_config.test_data_path
+)
+```
+
+---
+
+## Why Return These?
+
+Because the next stage:
+
+> **Data Transformation**
+
+needs access to:
+
+* training dataset
+* testing dataset
+
+---
+
+# 21. Complete Flow of Data Ingestion
+
+The component performs these steps:
+
+```
+Read dataset
+      ↓
+Save raw data
+      ↓
+Split dataset
+      ↓
+Save train dataset
+      ↓
+Save test dataset
+      ↓
+Return dataset paths
+```
+
+---
+
+# 22. Running the Script
+
+At the bottom we run the file.
+
+```python
+if __name__ == "__main__":
+```
+
+This ensures the script runs **only when executed directly**.
+
+---
+
+## Create Object
+
+```python
+obj = DataIngestion()
+```
+
+---
+
+## Call Ingestion Function
+
+```python
+obj.initiate_data_ingestion()
+```
+## Full data_ingestion.py code
+
+```python
+import os
+import sys
+from src.exception import CustomException
+from src.logger import logging
+import pandas as pd
+
+from sklearn.model_selection import train_test_split
+from dataclasses import dataclass
+
+@dataclass
+class DataIngestionConfig:
+    train_data_path: str=os.path.join('artifacts',"train.csv")
+    test_data_path: str=os.path.join('artifacts',"test.csv")
+    raw_data_path: str=os.path.join('artifacts',"data.csv")
+
+class DataIngestion:
+    def __init__(self):
+        self.ingestion_config=DataIngestionConfig()
+
+    def initiate_data_ingestion(self):
+        logging.info("Entered the data ingestion method or component")
+        try:
+            df=pd.read_csv('notebook\data\stud.csv')
+            logging.info('Read the dataset as dataframe')
+
+            os.makedirs(os.path.dirname(self.ingestion_config.train_data_path),exist_ok=True)
+
+            df.to_csv(self.ingestion_config.raw_data_path,index=False,header=True)
+
+            logging.info("Train test split initiated")
+            train_set,test_set=train_test_split(df,test_size=0.2,random_state=42)
+
+            train_set.to_csv(self.ingestion_config.train_data_path,index=False,header=True)
+
+            test_set.to_csv(self.ingestion_config.test_data_path,index=False,header=True)
+
+            logging.info("Inmgestion of the data iss completed")
+
+            return(
+                self.ingestion_config.train_data_path,
+                self.ingestion_config.test_data_path
+
+            )
+        except Exception as e:
+            raise CustomException(e,sys)
+        
+if __name__=="__main__":
+    obj=DataIngestion()
+    train_data,test_data=obj.initiate_data_ingestion()
+```
+---
+
+# 23. Executing From Terminal
+
+Command used:
+
+```
+python src/components/data_ingestion.py
+```
+
+---
+
+# 24. What Happens After Execution
+
+After running the script:
+
+New folder is created:
+
+```
+artifacts/
+```
+
+Inside it:
+
+```
+artifacts/
+ ├── data.csv
+ ├── train.csv
+ └── test.csv
+```
+
+---
+
+# 25. Logs Generated
+
+Logs will show:
+
+```
+Entered data ingestion method
+Read dataset as dataframe
+Train test split initiated
+Data ingestion completed
+```
+
+Logs help monitor pipeline execution.
+
+---
+
+# 26. Ignoring Artifacts in Git
+
+Add this to `.gitignore`:
+
+```
+artifacts/
+```
+
+Why?
+
+Because artifacts contain:
+
+* generated files
+* datasets
+* outputs
+
+These should **not be pushed to GitHub**.
+
+---
+
+# 27. Pushing Code to GitHub
+
+Commands used:
+
+```
+git add .
+```
+
+```
+git commit -m "data ingestion"
+```
+
+```
+git push origin main
+```
+
+Now the updated code appears in the GitHub repository.
+
+---
+
+# 28. Next Step in the Pipeline
+
+Next component to implement:
+
+> **Data Transformation**
+
+This will:
+
+* apply transformations to features
+* encode categorical variables
+* scale numerical features
+* prepare data for model training
+
+---
+
+# Step-by-Step Summary
+
+### Step 1
+
+Convert notebook workflow into **modular project code**.
+
+### Step 2
+
+Create **data_ingestion.py** inside:
+
+```
+src/components
+```
+
+### Step 3
+
+Import required libraries:
+
+* pandas
+* os
+* logging
+* train_test_split
+* dataclass
+
+### Step 4
+
+Create **DataIngestionConfig** class to store paths:
+
+* train dataset path
+* test dataset path
+* raw dataset path
+
+### Step 5
+
+Create **DataIngestion class**.
+
+### Step 6
+
+Initialize configuration inside constructor.
+
+### Step 7
+
+Create main function:
+
+```
+initiate_data_ingestion()
+```
+
+### Step 8
+
+Start logging.
+
+### Step 9
+
+Read dataset using `pandas.read_csv()`.
+
+### Step 10
+
+Create **artifacts folder** using `os.makedirs()`.
+
+### Step 11
+
+Save raw dataset to:
+
+```
+artifacts/data.csv
+```
+
+### Step 12
+
+Perform **train-test split (80/20)**.
+
+### Step 13
+
+Save training dataset:
+
+```
+artifacts/train.csv
+```
+
+### Step 14
+
+Save testing dataset:
+
+```
+artifacts/test.csv
+```
+
+### Step 15
+
+Return train and test paths for the **next pipeline stage**.
+
+### Step 16
+
+Execute the script from terminal.
+
+### Step 17
+
+Verify:
+
+* artifacts folder
+* train/test files
+* logs
+
+### Step 18
+
+Add `.artifacts` to `.gitignore`.
+
+### Step 19
+
+Commit and push code to GitHub.
+
+---
+
